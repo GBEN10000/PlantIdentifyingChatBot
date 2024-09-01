@@ -13,7 +13,7 @@ openai.api_key = os.getenv('OPENAI_API_KEY', 'API_KEY')
 # Plant.ID API details
 api_url = 'https://api.plant.id/v2/identify'
 headers = {
-    'Api-Key': os.getenv('PLANT_ID_API_KEY', 'Plant_API_KEY')
+    'Api-Key': os.getenv('PLANT_ID_API_KEY', 'PLANT_API_KEY')
 }
 
 async def search_openai_api(user_query):
