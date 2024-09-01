@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Identification and AI Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            max-width: 800px;
+        }
+        .upload-form {
+            margin-bottom: 20px;
+        }
+        .chat-container {
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        #chat-box {
+            max-height: 500px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        .message {
+            margin-bottom: 10px;
+        }
+        .message.user {
+            text-align: right;
+        }
+        .message .content {
+            display: inline-block;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .message.user .content {
+            background-color: #e0f7fa;
+        }
+        .message.ai .content {
+            background-color: #fff9c4;
+        }
+        #chat-form {
+            display: flex;
+            margin-top: 10px;
+        }
+        #chat-form input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #chat-form button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        #response-box {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Plant Identification and AI Chat</h1>
+        
+        <div class="upload-form">
+            <h2>Upload an Image for Plant Identification</h2>
+            <form id="upload-form" enctype="multipart/form-data">
+                <input type="file" name="file" accept="image/*" required>
+                <button type="submit">Upload and Identify</button>
+            </form>
+        </div>
+        
+        <div class="chat-container" id="chat-container">
+            <div id="chat-box"></div>
+            <form id="chat-form">
+                <input type="text" id="user-message" placeholder="Type your message..." required>
+                <button type="submit">Send</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function typeText(element, text, speed) {
+            let index = 0;
+
+            function type() {
+                if (index < text.length) {
+                    element.textContent += text.charAt(index);
+                    index++;
+                    setTimeout(type, speed);
+                }
+            }
+
+            type();
+        }
+
+        let plantName = '';
+
+        document.getElementById('upload-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.flower_common_name) {
+                plantName = data.flower_common_name;
+                addMessage('ai', `Uploaded image is '${plantName}'`);
+                addMessage('ai', data.ai_response);
+            } else {
+                addMessage('ai', 'Could not identify the plant.');
+            }
+        });
+
+        document.getElementById('chat-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const userMessage = document.getElementById('user-message').value;
+            addMessage('user', userMessage);
+            document.getElementById('user-message').value = '';
+
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_query: userMessage })
+            });
+
+            const data = await response.json();
+            addMessage('ai', data.ai_response);
+        });
+
+        function addMessage(type, content) {
+            const chatBox = document.getElementById('chat-box');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', type);
+            
+            // If it's an AI message, use typeText function
+            if (type === 'ai') {
+                const contentDiv = document.createElement('div');
+                contentDiv.classList.add('content');
+                contentDiv.id = `message-${Date.now()}`; // Ensure unique ID
+                messageDiv.appendChild(contentDiv);
+                chatBox.appendChild(messageDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                typeText(contentDiv, content, 7); // Adjust speed as needed
+            } else {
+                messageDiv.innerHTML = `<div class="content">${content}</div>`;
+                chatBox.appendChild(messageDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
