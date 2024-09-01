@@ -21,18 +21,24 @@
             border: 1px solid #ccc;
             border-radius: 10px;
             padding: 20px;
-            background-color: #f9f9f9;
+            background-color: #000000;
+            height: 500px; /* Fixed height for chat container */
+            display: flex;
+            flex-direction: column;
         }
         #chat-box {
-            max-height: 500px;
+            flex: 1;
             overflow-y: auto;
             margin-bottom: 10px;
         }
         .message {
             margin-bottom: 10px;
+            color: #04ff00;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
         }
         .message.user {
             text-align: right;
+            color: #ffffff;
         }
         .message .content {
             display: inline-block;
@@ -40,10 +46,7 @@
             border-radius: 5px;
         }
         .message.user .content {
-            background-color: #e0f7fa;
-        }
-        .message.ai .content {
-            background-color: #fff9c4;
+            background-color: #453b53;
         }
         #chat-form {
             display: flex;
@@ -52,16 +55,25 @@
         #chat-form input[type="text"] {
             flex: 1;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #ffffff;
             border-radius: 5px;
         }
         #chat-form button {
             padding: 10px;
             border: none;
             border-radius: 5px;
-            background-color: #007bff;
+            background-color: #5a292b;
             color: white;
             cursor: pointer;
+        }
+        #mic-button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            margin-left: 10px;
         }
         #response-box {
             margin-top: 10px;
@@ -89,12 +101,13 @@
             <form id="chat-form">
                 <input type="text" id="user-message" placeholder="Type your message..." required>
                 <button type="submit">Send</button>
+                <button type="button" id="mic-button">🎙️</button>
             </form>
         </div>
     </div>
 
     <script>
-        function typeText(element, text, speed) {
+        function typeText(element, text, speed, callback) {
             let index = 0;
 
             function type() {
@@ -102,13 +115,26 @@
                     element.textContent += text.charAt(index);
                     index++;
                     setTimeout(type, speed);
+                } else if (callback) {
+                    callback();
                 }
             }
 
             type();
         }
 
+        function speakText(text, rate = 1.5) {
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = rate; // Adjust the speech speed
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
         let plantName = '';
+        let isListening = false;
+        const micButton = document.getElementById('mic-button');
 
         document.getElementById('upload-form').addEventListener('submit', async function(event) {
             event.preventDefault();
@@ -122,7 +148,6 @@
 
             if (data.flower_common_name) {
                 plantName = data.flower_common_name;
-                addMessage('ai', `Uploaded image is '${plantName}'`);
                 addMessage('ai', data.ai_response);
             } else {
                 addMessage('ai', 'Could not identify the plant.');
@@ -147,26 +172,95 @@
             addMessage('ai', data.ai_response);
         });
 
-        function addMessage(type, content) {
-            const chatBox = document.getElementById('chat-box');
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', type);
-            
-            // If it's an AI message, use typeText function
-            if (type === 'ai') {
-                const contentDiv = document.createElement('div');
-                contentDiv.classList.add('content');
-                contentDiv.id = `message-${Date.now()}`; // Ensure unique ID
-                messageDiv.appendChild(contentDiv);
-                chatBox.appendChild(messageDiv);
-                chatBox.scrollTop = chatBox.scrollHeight;
-                typeText(contentDiv, content, 7); // Adjust speed as needed
-            } else {
-                messageDiv.innerHTML = `<div class="content">${content}</div>`;
-                chatBox.appendChild(messageDiv);
-                chatBox.scrollTop = chatBox.scrollHeight;
+        micButton.addEventListener('click', function() {
+            if (!('webkitSpeechRecognition' in window)) {
+                alert('Speech recognition not supported');
+                return;
             }
-        }
+
+            const recognition = new webkitSpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+
+            recognition.onstart = function() {
+                isListening = true;
+                micButton.textContent = '🛑'; // Change icon to indicate listening
+            };
+
+            recognition.onend = function() {
+                isListening = false;
+                micButton.textContent = '🎙️'; // Change icon back to original
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                addMessage('user', transcript);
+
+                fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_query: transcript })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    addMessage('ai', data.ai_response);
+                    speakText(data.ai_response); // Speak out the AI response
+                });
+            };
+
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
+
+        // function addMessage(type, content) {
+        //     const chatBox = document.getElementById('chat-box');
+        //     const messageDiv = document.createElement('div');
+        //     messageDiv.classList.add('message', type);
+
+        //     if (type === 'ai') {
+        //         const contentDiv = document.createElement('div');
+        //         contentDiv.classList.add('content');
+        //         contentDiv.id = message-${Date.now()}; // Ensure unique ID
+        //         messageDiv.appendChild(contentDiv);
+        //         chatBox.appendChild(messageDiv);
+        //         chatBox.scrollTop = chatBox.scrollHeight;
+        //         typeText(contentDiv, content, 7, () => {
+        //             chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom after typing is complete
+        //         });
+        //     } else {
+        //         messageDiv.innerHTML = <div class="content">${content}</div>;
+        //         chatBox.appendChild(messageDiv);
+        //         chatBox.scrollTop = chatBox.scrollHeight;
+        //     }
+        // }
+        function addMessage(type, content) {
+    const chatBox = document.getElementById('chat-box');
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message', type);
+
+    if (type === 'ai') {
+        const contentDiv = document.createElement('div');
+        contentDiv.classList.add('content');
+        contentDiv.id = `message-${Date.now()}`; // Ensure unique ID
+        messageDiv.appendChild(contentDiv);
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        typeText(contentDiv, content, 7, () => {
+            chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom after typing is complete
+        });
+        speakText(content, 1.5); // Adjust the speed to your preference (e.g., 1.2 times normal speed)
+    } else {
+        messageDiv.innerHTML = `<div class="content">${content}</div>`;
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+}
+
     </script>
 </body>
 </html>
