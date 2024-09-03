@@ -5,97 +5,233 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plant Identification and AI Chat</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .container {
-            width: 80%;
-            margin: 0 auto;
-            max-width: 800px;
-        }
-        .upload-form {
-            margin-bottom: 20px;
-        }
-        .chat-container {
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            padding: 20px;
-            background-color: #000000;
-            height: 500px; /* Fixed height for chat container */
-            display: flex;
-            flex-direction: column;
-        }
-        #chat-box {
-            flex: 1;
-            overflow-y: auto;
-            margin-bottom: 10px;
-        }
-        .message {
-            margin-bottom: 10px;
-            color: #04ff00;
-            font-family: Verdana, Geneva, Tahoma, sans-serif;
-        }
-        .message.user {
-            text-align: right;
-            color: #ffffff;
-        }
-        .message .content {
-            display: inline-block;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .message.user .content {
-            background-color: #453b53;
-        }
-        #chat-form {
-            display: flex;
-            margin-top: 10px;
-        }
-        #chat-form input[type="text"] {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ffffff;
-            border-radius: 5px;
-        }
-        #chat-form button {
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background-color: #5a292b;
-            color: white;
-            cursor: pointer;
-        }
-        #mic-button {
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background-color: #28a745;
-            color: white;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-        #response-box {
-            margin-top: 10px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f0f0f0;
-        }
-    </style>
+    @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    color: #e0e0e0;
+    background: linear-gradient(135deg, #121212, #1e1e2d);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+h1 {
+    color: #00bfae;
+    margin: 20px 0; /* Reduced margin */
+    font-size: 2.8em;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.7);
+    animation: fadeIn 1s ease-out;
+}
+
+.upload-form {
+    margin: 10px 0; /* Reduced margin */
+    text-align: center;
+}
+
+.custom-file-upload {
+    display: inline-block;
+    padding: 12px 20px;
+    cursor: pointer;
+    background: linear-gradient(145deg, #00bfae, #009e8b);
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.custom-file-upload:hover {
+    background: linear-gradient(145deg, #009e8b, #00bfae);
+    transform: scale(1.05);
+}
+
+button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+    background: linear-gradient(145deg, #ff5722, #e64a19);
+}
+
+button:hover {
+    background: linear-gradient(145deg, #e64a19, #ff5722);
+    transform: scale(1.03);
+}
+
+#upload-button {
+    margin-left: 8px; /* Reduced margin */
+}
+
+#identify-button {
+    background: linear-gradient(145deg, #00bfae, #009e8b);
+}
+
+#identify-button:hover {
+    background: linear-gradient(145deg, #009e8b, #00bfae);
+}
+
+.main-container {
+    display: flex;
+    width: 95%; /* Increased to use more available width */
+    max-width: 1100px; /* Adjusted max-width for better fit */
+    margin: 10px 0; /* Reduced margin */
+    border-radius: 15px;
+    overflow: hidden;
+    background: #1e1e2d;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    animation: slideUp 1s ease-out;
+}
+
+.image-container {
+    flex: 1;
+    padding: 10px; /* Reduced padding */
+    height: 300px; /* Slightly reduced height */
+}
+
+#uploaded-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 15px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+}
+
+.chat-container {
+    flex: 2;
+    width: 380px; /* Fixed width */
+    height: 500px; /* Fixed height */
+    border: 1px solid #333;
+    border-radius: 15px;
+    background: linear-gradient(145deg, #1e1e2d, #1a1a27);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    padding: 10px; /* Reduced padding */
+    display: flex;
+    flex-direction: column;
+}
+
+#chat-box {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 10px; /* Reduced margin */
+    padding-right: 10px; /* Reduced padding */
+}
+
+.message {
+    margin-bottom: 14px; /* Reduced margin */
+    font-size: 1em;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.message.user {
+    text-align: right;
+    color: #d1d1d1;
+}
+
+.message.ai {
+    color: #00bfae;
+}
+
+.message:hover {
+    transform: scale(1.03);
+    color: #ffffff;
+}
+
+.message .content {
+    display: inline-block;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background-color: #2b2b2b;
+    box-shadow: inset 2px 2px 6px rgba(0,0,0,0.4);
+}
+
+.message.user .content {
+    background-color: #2a2a2a;
+    box-shadow: inset 2px 2px 6px rgba(0,0,0,0.6);
+}
+
+#chat-form {
+    display: flex;
+    align-items: center;
+    margin-top: 10px; /* Reduced margin */
+}
+
+#chat-form input[type="text"] {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #666;
+    border-radius: 10px;
+    background-color: #1e1e2d;
+    color: #e0e0e0;
+    outline: none;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+#chat-form input[type="text"]:focus {
+    border-color: #00bfae;
+    background-color: #2b2b2b;
+}
+
+#chat-form button {
+    background: linear-gradient(145deg, #ff5722, #e64a19);
+    margin-left: 8px; /* Reduced margin */
+}
+
+#chat-form button:hover {
+    background: linear-gradient(145deg, #e64a19, #ff5722);
+}
+
+#mic-button {
+    background: linear-gradient(145deg, #00bfae, #009e8b);
+}
+
+#mic-button:hover {
+    background: linear-gradient(145deg, #009e8b, #00bfae);
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.custom-file-upload {
+    display: inline-block;
+    cursor: pointer;
+}
+
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Plant Identification and AI Chat</h1>
-        
-        <div class="upload-form">
-            <h2>Upload an Image for Plant Identification</h2>
-            <form id="upload-form" enctype="multipart/form-data">
-                <input type="file" name="file" accept="image/*" required>
-                <button type="submit">Upload and Identify</button>
-            </form>
+
+    <h1>Plant Identification and AI Chat</h1>
+
+    <div class="upload-form">
+        <!-- <h2>Upload an Image for Plant Identification</h2> -->
+        <form id="upload-form" enctype="multipart/form-data">
+            <label for="file-upload" class="custom-file-upload">
+                Choose File
+            </label>
+            <input id="file-upload" type="file" name="file" accept="image/*" required>
+            <button type="submit" id="upload-button">Upload and Identify</button>
+        </form>
+    </div>
+
+    <div class="main-container">
+        <div class="image-container">
+            <img id="uploaded-image" style="display:none; max-width: 100%; border-radius: 10px;" />
         </div>
-        
         <div class="chat-container" id="chat-container">
             <div id="chat-box"></div>
             <form id="chat-form">
@@ -106,160 +242,222 @@
         </div>
     </div>
 
+</body>
+</html>
+
     <script>
-        function typeText(element, text, speed, callback) {
-            let index = 0;
+      let isListening = false;
+let identifiedPlantName = ''; // Variable to store the identified plant name
 
-            function type() {
-                if (index < text.length) {
-                    element.textContent += text.charAt(index);
-                    index++;
-                    setTimeout(type, speed);
-                } else if (callback) {
-                    callback();
-                }
-            }
+function typeText(element, text, speed, callback) {
+    let index = 0;
 
-            type();
+    function type() {
+        if (index < text.length) {
+            element.textContent += text.charAt(index);
+            index++;
+            setTimeout(type, speed);
+        } else if (callback) {
+            callback();
         }
+    }
 
-        function speakText(text, rate = 1.5) {
+    type();
+}
+
+function speakText(text, rate = 1.5) {
     if ('speechSynthesis' in window) {
+        console.log('Speaking text:', text);
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'en-US';
-        utterance.rate = rate; // Adjust the speech speed
+        utterance.rate = rate;
+        window.speechSynthesis.cancel();
         window.speechSynthesis.speak(utterance);
     }
 }
+document.getElementById('upload-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+    const fileInput = this.querySelector('input[type="file"]');
+    const file = fileInput.files[0];
+    const reader = new FileReader();
 
-        let plantName = '';
-        let isListening = false;
-        const micButton = document.getElementById('mic-button');
+    reader.onload = function(e) {
+        const uploadedImage = document.getElementById('uploaded-image');
+        uploadedImage.src = e.target.result;
+        uploadedImage.style.display = 'block'; // Show the image
+    };
 
-        document.getElementById('upload-form').addEventListener('submit', async function(event) {
-            event.preventDefault();
-            const formData = new FormData(this);
-            const response = await fetch('/upload', {
-                method: 'POST',
-                body: formData
-            });
+    reader.readAsDataURL(file);
 
+    try {
+        const response = await fetch('/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
             const data = await response.json();
-
             if (data.flower_common_name) {
-                plantName = data.flower_common_name;
+                identifiedPlantName = data.flower_common_name; // Store identified plant name
                 addMessage('ai', data.ai_response);
             } else {
                 addMessage('ai', 'Could not identify the plant.');
             }
+        } else {
+            addMessage('ai', 'Error occurred during upload.');
+        }
+    } catch (error) {
+        addMessage('ai', 'Network error occurred.');
+    }
+});
+
+
+document.getElementById('chat-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    const userMessage = document.getElementById('user-message').value;
+    let updatedMessage = userMessage;
+
+    if (identifiedPlantName) {
+        updatedMessage = updatedMessage.replace(/\bplant\b/gi, identifiedPlantName);
+        updatedMessage = updatedMessage.replace(/\bit\b/gi, identifiedPlantName);
+    }
+
+    addMessage('user', updatedMessage);
+    document.getElementById('user-message').value = '';
+
+    try {
+        const response = await fetch('/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ user_query: updatedMessage })
         });
 
-        document.getElementById('chat-form').addEventListener('submit', async function(event) {
-            event.preventDefault();
-            const userMessage = document.getElementById('user-message').value;
-            addMessage('user', userMessage);
-            document.getElementById('user-message').value = '';
-
-            const response = await fetch('/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ user_query: userMessage })
-            });
-
+        if (response.ok) {
             const data = await response.json();
             addMessage('ai', data.ai_response);
+            speakText(data.ai_response);
+        } else {
+            addMessage('ai', 'Error occurred during chat.');
+        }
+    } catch (error) {
+        addMessage('ai', 'Network error occurred.');
+    }
+});
+const micButton = document.getElementById('mic-button');
+
+micButton.addEventListener('click', function() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert('Speech recognition not supported');
+        return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+
+    recognition.onstart = function() {
+        isListening = true;
+        micButton.textContent = '🛑'; // Change icon to indicate listening
+    };
+
+    recognition.onend = function() {
+        isListening = false;
+        micButton.textContent = '🎙️'; // Change icon back to original
+    };
+
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        let updatedTranscript = transcript;
+
+        if (identifiedPlantName) {
+            updatedTranscript = updatedTranscript.replace(/\bplant\b/gi, identifiedPlantName);
+            updatedTranscript = updatedTranscript.replace(/\bit\b/gi, identifiedPlantName);
+        }
+
+        addMessage('user', updatedTranscript);
+
+        fetch('/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ user_query: updatedTranscript })
+        })
+        .then(response => response.json())
+        .then(data => {
+            addMessage('ai', data.ai_response);
+            speakText(data.ai_response);
+        })
+        .catch(error => {
+            addMessage('ai', 'Error occurred during speech processing.');
         });
+    };
 
-        micButton.addEventListener('click', function() {
-            if (!('webkitSpeechRecognition' in window)) {
-                alert('Speech recognition not supported');
-                return;
-            }
-
-            const recognition = new webkitSpeechRecognition();
-            recognition.lang = 'en-US';
-            recognition.interimResults = false;
-
-            recognition.onstart = function() {
-                isListening = true;
-                micButton.textContent = '🛑'; // Change icon to indicate listening
-            };
-
-            recognition.onend = function() {
-                isListening = false;
-                micButton.textContent = '🎙️'; // Change icon back to original
-            };
-
-            recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
-                addMessage('user', transcript);
-
-                fetch('/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ user_query: transcript })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    addMessage('ai', data.ai_response);
-                    speakText(data.ai_response); // Speak out the AI response
-                });
-            };
-
-            if (isListening) {
-                recognition.stop();
-            } else {
-                recognition.start();
-            }
-        });
-
-        // function addMessage(type, content) {
-        //     const chatBox = document.getElementById('chat-box');
-        //     const messageDiv = document.createElement('div');
-        //     messageDiv.classList.add('message', type);
-
-        //     if (type === 'ai') {
-        //         const contentDiv = document.createElement('div');
-        //         contentDiv.classList.add('content');
-        //         contentDiv.id = message-${Date.now()}; // Ensure unique ID
-        //         messageDiv.appendChild(contentDiv);
-        //         chatBox.appendChild(messageDiv);
-        //         chatBox.scrollTop = chatBox.scrollHeight;
-        //         typeText(contentDiv, content, 7, () => {
-        //             chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom after typing is complete
-        //         });
-        //     } else {
-        //         messageDiv.innerHTML = <div class="content">${content}</div>;
-        //         chatBox.appendChild(messageDiv);
-        //         chatBox.scrollTop = chatBox.scrollHeight;
-        //     }
-        // }
-        function addMessage(type, content) {
+    if (isListening) {
+        recognition.stop();
+    } else {
+        recognition.start();
+    }
+});
+function addMessage(type, content) {
     const chatBox = document.getElementById('chat-box');
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message', type);
 
     if (type === 'ai') {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+
         const contentDiv = document.createElement('div');
         contentDiv.classList.add('content');
-        contentDiv.id = `message-${Date.now()}`; // Ensure unique ID
+        contentDiv.id = `message-${Date.now()}`;
         messageDiv.appendChild(contentDiv);
         chatBox.appendChild(messageDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
-        typeText(contentDiv, content, 7, () => {
-            chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom after typing is complete
+        typeText(contentDiv, content, 1, () => {
+            chatBox.scrollTop = chatBox.scrollHeight;
         });
-        speakText(content, 1.5); // Adjust the speed to your preference (e.g., 1.2 times normal speed)
+        if ('speechSynthesis' in window) {
+            speakText(content, 1.5);
+        }
     } else {
         messageDiv.innerHTML = `<div class="content">${content}</div>`;
         chatBox.appendChild(messageDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 }
+
+function typeText(element, text, speed, callback) {
+    let index = 0;
+
+    function type() {
+        if (index < text.length) {
+            element.textContent += text.charAt(index);
+            index++;
+            setTimeout(type, speed);
+        } else if (callback) {
+            callback();
+        }
+    }
+
+    type();
+}
+
+function speakText(text, rate = 1.5) {
+    if ('speechSynthesis' in window) {
+        console.log('Speaking text:', text);
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = rate;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
 
     </script>
 </body>
